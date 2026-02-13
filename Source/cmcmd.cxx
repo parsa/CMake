@@ -41,6 +41,7 @@
 #include "cmValue.h"
 #include "cmVersion.h"
 #include "cmake.h"
+#include "cmGccDepfileReader.h"
 
 #if !defined(CMAKE_BOOTSTRAP)
 #  include "cmDependsFortran.h" // For -E cmake_copy_f90_mod callback.
@@ -2391,6 +2392,55 @@ int cmcmd::ExecuteCMakeCommand(std::vector<std::string> const& args,
         return cmTransformDepfile(format, *lgd, args[8], args[9]) ? 0 : 2;
       }
       return 1;
+    }
+
+    // Internal depfile dependency extraction (newline-separated, no escaping).
+    // Usage:
+    //   cmake -E cmake_depfile_deps <prefix> <infile> <outfile|"-">
+    if (args[1] == "cmake_depfile_deps" && args.size() == 5) {
+      std::string const prefix =
+        cmSystemTools::ToNormalizedPathOnDisk(args[2]);
+      std::string const infile =
+        cmSystemTools::ToNormalizedPathOnDisk(args[3]);
+      std::string const outfile = args[4];
+
+      std::vector<std::string> deps;
+      if (cmSystemTools::FileExists(infile)) {
+        auto result = cmReadGccDepfile(infile.c_str(), prefix,
+                                       GccDepfilePrependPaths::Deps);
+        if (!result) {
+          return 2;
+        }
+        for (auto const& dep : *result) {
+          for (auto const& path : dep.paths) {
+            if (!path.empty()) {
+              deps.emplace_back(path);
+            }
+          }
+        }
+      }
+
+      std::sort(deps.begin(), deps.end());
+      deps.erase(std::unique(deps.begin(), deps.end()), deps.end());
+
+      std::ostream* os = nullptr;
+      cmsys::ofstream fout;
+      if (outfile == "-") {
+        os = &std::cout;
+      } else {
+        cmSystemTools::MakeDirectory(
+          cmSystemTools::GetFilenamePath(outfile));
+        fout.open(outfile.c_str());
+        if (!fout) {
+          return 1;
+        }
+        os = &fout;
+      }
+
+      for (auto const& d : deps) {
+        *os << d << '\n';
+      }
+      return 0;
     }
   }
 

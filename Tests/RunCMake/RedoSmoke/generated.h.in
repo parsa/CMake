@@ -1,0 +1,4 @@
+#pragma once
+
+#define GENERATED_MESSAGE "generated2"
+

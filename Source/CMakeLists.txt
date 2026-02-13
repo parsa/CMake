@@ -814,6 +814,13 @@ add_library(
   # FASTBuild support
   cmGlobalFastbuildGenerator.cxx
   cmGlobalFastbuildGenerator.h
+  # Redo support
+  cmGlobalRedoGenerator.cxx
+  cmGlobalRedoGenerator.h
+  cmLocalRedoGenerator.cxx
+  cmLocalRedoGenerator.h
+  cmRedoTargetGenerator.cxx
+  cmRedoTargetGenerator.h
   cmLocalFastbuildGenerator.cxx
   cmLocalFastbuildGenerator.h
   cmFastbuildTargetGenerator.cxx

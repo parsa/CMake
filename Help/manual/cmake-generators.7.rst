@@ -71,6 +71,14 @@ FASTBuild Generator
 
    /generator/FASTBuild
 
+Redo Generator
+^^^^^^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
+
+   /generator/Redo
+
 .. _`IDE Build Tool Generators`:
 
 IDE Build Tool Generators
