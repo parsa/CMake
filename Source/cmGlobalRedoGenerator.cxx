@@ -248,7 +248,7 @@ cmGlobalRedoGenerator::GenerateBuildCommand(
   std::string const& /*projectDir*/,
   std::vector<std::string> const& targetNames, std::string const& /*config*/,
   int jobs, bool verbose, cmBuildOptions /*buildOptions*/,
-  std::vector<std::string> const& makeOptions, BuildTryCompile /*isInTryCompile*/)
+  std::vector<std::string> const& makeOptions, BuildTryCompile isInTryCompile)
 {
   GeneratedMakeCommand makeCommand;
   makeCommand.Add(this->SelectMakeProgram(makeProgram));
@@ -261,7 +261,11 @@ cmGlobalRedoGenerator::GenerateBuildCommand(
   // Native options after `--` are passed through directly to redo.
   makeCommand.Add(makeOptions.begin(), makeOptions.end());
 
-  if (verbose) {
+  // CMake uses verbose build output extensively during try_compile in configure.
+  // Mapping that to `redo -v` enables shell `-v` (echo input lines), which makes
+  // try_compile output extremely noisy and can dramatically slow down configure.
+  // Keep `-v` for normal builds, but suppress it in try_compile mode.
+  if (verbose && isInTryCompile == BuildTryCompile::No) {
     makeCommand.Add("-v");
   }
 
